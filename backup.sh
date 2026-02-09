@@ -43,7 +43,18 @@ if [ "${S3_IAMROLE}" != "true" ]; then
   export AWS_DEFAULT_REGION=$S3_REGION
 fi
 
+# Build MySQL connection options
 MYSQL_HOST_OPTS="-h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
+
+# Handle SSL mode for self-signed certificates
+if [ "${MYSQL_SSL_MODE}" = "skip" ] || [ "${MYSQL_SSL_MODE}" = "disabled" ]; then
+  MYSQL_HOST_OPTS="$MYSQL_HOST_OPTS --skip-ssl"
+elif [ "${MYSQL_SSL_MODE}" = "verify-ca" ]; then
+  MYSQL_HOST_OPTS="$MYSQL_HOST_OPTS --ssl-verify-server-cert=1"
+elif [ "${MYSQL_SSL_MODE}" = "skip-verify" ]; then
+  MYSQL_HOST_OPTS="$MYSQL_HOST_OPTS --ssl-verify-server-cert=0"
+fi
+
 DUMP_START_TIME=$(date +"%Y-%m-%dT%H%M%SZ")
 
 mysqldump --version
