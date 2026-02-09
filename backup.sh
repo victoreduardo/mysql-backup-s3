@@ -117,6 +117,27 @@ else
   fi
 fi
 
+if [ "${DELETE_OLDER_THAN}" != "**None**" ]; then
+  >&2 echo "Checking for files older than ${DELETE_OLDER_THAN}"
+  aws $AWS_ARGS s3 ls s3://$S3_BUCKET/$S3_PREFIX/ | grep " PRE " -v | while read -r line;
+    do
+      fileName=`echo $line|awk {'print $4'}`
+      created=`echo $line|awk {'print $1" "$2'}`
+      created=`date -d "$created" +%s`
+      older_than=`date -d "$DELETE_OLDER_THAN" +%s`
+      if [ $created -lt $older_than ]
+        then
+          if [ $fileName != "" ]
+            then
+              >&2 echo "DELETING ${fileName}"
+              aws $AWS_ARGS s3 rm s3://$S3_BUCKET/$S3_PREFIX/$fileName
+          fi
+      else
+          >&2 echo "${fileName} not older than ${DELETE_OLDER_THAN}"
+      fi
+    done;
+fi
+
 echo "SQL backup finished"
 
 if [ "${SUCCESS_WEBHOOK}" != "**None**" ]; then

@@ -22,6 +22,7 @@ ENV S3_FILENAME **None**
 ENV MULTI_DATABASES no
 ENV SCHEDULE **None**
 ENV SUCCESS_WEBHOOK **None**
+ENV DELETE_OLDER_THAN **None**
 
 ADD entrypoint.sh backup.sh /
 
