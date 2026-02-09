@@ -3,11 +3,11 @@
 set -e
 set -o pipefail
 
-if [ "${S3_ACCESS_KEY_ID}" = "**None**" ]; then
+if [ -z "${S3_ACCESS_KEY_ID}" ] || [ "${S3_ACCESS_KEY_ID}" = "**None**" ]; then
   echo "Warning: You did not set the S3_ACCESS_KEY_ID environment variable."
 fi
 
-if [ "${S3_SECRET_ACCESS_KEY}" = "**None**" ]; then
+if [ -z "${S3_SECRET_ACCESS_KEY}" ] || [ "${S3_SECRET_ACCESS_KEY}" = "**None**" ]; then
   echo "Warning: You did not set the S3_SECRET_ACCESS_KEY environment variable."
 fi
 
@@ -31,7 +31,7 @@ if [ "${MYSQL_USER}" = "**None**" ]; then
   exit 1
 fi
 
-if [ "${MYSQL_PASSWORD}" = "**None**" ]; then
+if [ -z "${MYSQL_PASSWORD}" ] || [ "${MYSQL_PASSWORD}" = "**None**" ]; then
   echo "You need to set the MYSQL_PASSWORD environment variable or link to a container named MYSQL."
   exit 1
 fi
