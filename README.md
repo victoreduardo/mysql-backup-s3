@@ -50,6 +50,12 @@ services:
 - `S3_S3V4` set to `yes` to enable AWS Signature Version 4, required for [minio](https://minio.io) servers (default: no)
 - `MULTI_DATABASES` Allow to have one file per database if set `yes` default: no)
 
+## Delete Old Backups
+
+You can additionally set the DELETE_OLDER_THAN environment variable like -e DELETE_OLDER_THAN="30 days ago" to delete old backups.
+
+WARNING: this will delete all files in the S3_PREFIX path, not just those created by this script.
+
 ---
 
 This project was originally forked from [schickling/dockerfiles](https://github.com/schickling/dockerfiles/tree/master/mysql-backup-s3).

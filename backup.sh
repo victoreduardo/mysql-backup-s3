@@ -130,21 +130,32 @@ fi
 
 if [ "${DELETE_OLDER_THAN}" != "**None**" ]; then
   >&2 echo "Checking for files older than ${DELETE_OLDER_THAN}"
+  
+  # Only support "X days ago" format
+  if ! echo "$DELETE_OLDER_THAN" | grep -qE "^[0-9]+ days? ago$"; then
+    >&2 echo "Error: DELETE_OLDER_THAN must be in format 'X days ago' (e.g., '30 days ago')"
+    exit 1
+  fi
+  
+  DAYS=$(echo "$DELETE_OLDER_THAN" | sed -E 's/^([0-9]+) days? ago$/\1/')
+  CURRENT_TIME=$(date +%s)
+  older_than=$((CURRENT_TIME - (DAYS * 86400)))
+  
   aws $AWS_ARGS s3 ls s3://$S3_BUCKET/$S3_PREFIX/ | grep " PRE " -v | while read -r line;
     do
       fileName=`echo $line|awk {'print $4'}`
       created=`echo $line|awk {'print $1" "$2'}`
-      created=`date -d "$created" +%s`
-      older_than=`date -d "$DELETE_OLDER_THAN" +%s`
-      if [ $created -lt $older_than ]
-        then
-          if [ $fileName != "" ]
-            then
-              >&2 echo "DELETING ${fileName}"
-              aws $AWS_ARGS s3 rm s3://$S3_BUCKET/$S3_PREFIX/$fileName
-          fi
-      else
-          >&2 echo "${fileName} not older than ${DELETE_OLDER_THAN}"
+      # Convert S3 date (YYYY-MM-DD HH:MM:SS) to timestamp using awk
+      created=$(awk -v d="$created" 'BEGIN {
+        split(d, dt, " "); split(dt[1], date, "-"); split(dt[2], time, ":");
+        printf "%d", mktime(date[1] " " date[2] " " date[3] " " time[1] " " time[2] " " time[3])
+      }' 2>/dev/null)
+      if [ -z "$created" ] || [ "$created" = "0" ] || [ -z "$fileName" ]; then
+        continue
+      fi
+      if [ $created -lt $older_than ]; then
+        >&2 echo "DELETING ${fileName}"
+        aws $AWS_ARGS s3 rm s3://$S3_BUCKET/$S3_PREFIX/$fileName
       fi
     done;
 fi
