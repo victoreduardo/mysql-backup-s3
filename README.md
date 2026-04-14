@@ -28,6 +28,22 @@ services:
     S3_BUCKET: my-bucket
 ```
 
+## Manual backup
+
+With the container already running (same environment variables as usual), trigger one backup immediately:
+
+```sh
+docker exec <container_name_or_id> sh /backup.sh
+```
+
+With Docker Compose (replace `mysql_backup` with your service name):
+
+```sh
+docker compose exec mysql_backup sh /backup.sh
+```
+
+The script uses the container’s existing environment; you do not need to pass `-e` again unless you override them for that one run (e.g. `docker exec -e MYSQLDUMP_DATABASE=other_db …`).
+
 ## Environment variables
 
 - `SCHEDULE` crontab-like syntax to schedule your backups
